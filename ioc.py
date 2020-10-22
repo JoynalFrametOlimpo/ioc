@@ -85,7 +85,7 @@ class ioc:
             return "No información disponible"
 
     def find_hash(self, txt):
-        API_KEY = "XXXXXXX"   # lIcence 4 request for minute
+        API_KEY = "c191181dc1e97a46ff462d0c9acf1efc6fec1b8479aaf61c58c303f41fabd946"   # lIcence 4 request for minute
         vt = VirusTotalPublicApi(API_KEY)
         response = vt.get_file_report(txt)
         print(json.dumps(response, sort_keys=False, indent=4))
