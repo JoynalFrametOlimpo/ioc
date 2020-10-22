@@ -3,6 +3,10 @@ import sys
 import validators
 import requests
 import json
+import socket
+
+import hashlib
+from virus_total_apis import PublicApi as VirusTotalPublicApi
 
 class bcolor:
     RED = '\033[91m'
@@ -62,34 +66,56 @@ class ioc:
 
         self.print_test()
 
-    def geoloca (self, ip):
+    def geoloca (self, ip, band = "ip"):
         try:
+            if band == "url":
+                print ("IP :" + ip)
             api_url = "http://ip-api.com/json/"
             param = "city,country,countryCode,isp"
             data = {'fields':param}
             res = requests.get(api_url + ip, data = data)
-            return json.loads(res.content)
-        except json.decoder.JSONDecodeError as e:
-            print ("Error datos")
-            return ""
-#51.195.148.18
+            resu = json.loads(res.content)
+            if resu["status"] == "success":
+                return resu["country"]
+            return "No información disponible"
+        except ValueError as e:
+            print ("Decoding JSON ha fallado")
+            return "No información disponible"
+        except socket.gaierror as e:
+            return "No información disponible"
+
+    def find_hash(self, txt):
+        API_KEY = "XXXXXXX"   # lIcence 4 request for minute
+        vt = VirusTotalPublicApi(API_KEY)
+        response = vt.get_file_report(txt)
+        print(json.dumps(response, sort_keys=False, indent=4))
+
     def print_test(self):
         print ("------------------ Resultados ----------------------")
+
         print ("Cantidad de Ips: {}".format(len(self.ip)))
         print ("Listado de IPS: " + "\n" + "-------------------------")
         for list in self.ip:
             print (bcolor.RED + list + "\n" + "----------------" + bcolor.GREEN)
-            print (len(list))
-            print ("a. Geolocalización : {}".format(self.geoloca(list)["country"]))
+            data = self.geoloca(list, "ip")
+            print ("a. Geolocalización : {}".format(data))
             print ("b. Reputación : " + "\n")
+
         print ("Cantidad de Hashes: {}".format(len(self.hash)))
         print ("Listado de hashes: " + "\n" + "-------------------------")
         for list in self.hash:
-            print (list)
+            print (bcolor.RED + list + "\n" + "----------------" + bcolor.GREEN)
+            self.find_hash(list)
+
         print ("Cantidad de Url: {}".format(len(self.url)))
         print ("Listado de Url: " + "\n" + "-------------------------")
         for list in self.url:
-            print (list)
+            print (bcolor.RED + list + "\n" + "----------------" + bcolor.GREEN)
+            data = self.geoloca(list, "url")
+            print ("a. Geolocalización : {}".format(data))
+            print ("b. Reputación : " + "\n")
+
+
 
     def validate_ip(self, txt):
         if validators.ipv4(txt) or validators.ipv6(txt):
@@ -119,4 +145,5 @@ if __name__ == "__main__":
         print("No existe el archivo")
         sys.exit(1)
     else:
-        ioc.get_format()
+        #ioc.get_format()
+        ioc.find_hash("40c46bcab9acc0d6d235491c01a66d4c6f35d884c19c6f410901af6d1e33513b")
